@@ -23,20 +23,26 @@ class BulkStoreInvoiceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'      =>      ['required'],
-            'type'      =>      ['required', Rule::in(['I', 'B', 'i', 'b'])],
-            'email'     =>      ['required', 'email'],
-            'address'   =>      ['required'],
-            'city'      =>      ['required'],
-            'state'     =>      ['required'],
-            'postCode'  =>      ['required'],
+            '*.customerId'      =>      ['required', 'integer'],
+            '*.amount'          =>      ['required', 'numeric'],
+            '*.status'          =>      ['required', Rule::in(['B', 'P', 'V', 'b', 'p', 'v'])],
+            '*.billedDate'     =>       ['required', 'date_format:Y-m-d H:i:s'],
+            '*.paidDate'        =>      ['date_format:Y-m-d H:i:s', 'nullable'],
         ];
     }
 
     protected function prepareForValidation() 
     {
-        $this->merge([
-            'post_code'     =>      $this->postCode
-        ]);
+        $data = [];
+
+        foreach($this->toArray() as $obj) 
+        {
+          $obj['customer_id']   =   $obj['customerId'] ?? null;
+          $obj['billed_date']   =   $obj['billedDate'] ?? null;
+          $obj['paid_date']     =   $obj['paidDate'] ?? null;
+
+          $data[] = $obj;
+        }
+        $this->merge($data);
     }
 }
